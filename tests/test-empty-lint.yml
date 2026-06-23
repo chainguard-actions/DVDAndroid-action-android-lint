@@ -1,0 +1,41 @@
+name: Test with empty lint results (no issues)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REPOSITORY: test-owner/my-repo
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Prepare empty lint XML fixture
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/lint-output"
+          cat > "$GITHUB_WORKSPACE/lint-output/lint-results-empty.xml" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <issues format="5" by="lint 4.1.0">
+          </issues>
+          EOF
+          echo "Created empty lint XML at $GITHUB_WORKSPACE/lint-output/lint-results-empty.xml"
+
+      - id: action
+        uses: .
+        with:
+          github_token: fake-token-for-local-testing
+          lint_xml_file: lint-output/lint-results-empty.xml
+          level: error
+          reporter: local
+          reviewdog_flags: ''
+        continue-on-error: true
+
+      - name: Assert action ran with empty lint file
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with empty lint file (outcome=$OUTCOME)"

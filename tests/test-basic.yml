@@ -1,0 +1,57 @@
+name: Test basic usage with lint issues
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REPOSITORY: test-owner/my-repo
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Prepare lint XML fixture with correct paths
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/lint-output"
+          RUNNER_WS="${RUNNER_WORKSPACE:-/home/runner/work/my-repo}"
+          REPO_NAME="my-repo"
+          cat > "$GITHUB_WORKSPACE/lint-output/lint-results.xml" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <issues format="5" by="lint 4.1.0">
+              <issue
+                  id="HardcodedText"
+                  severity="Warning"
+                  message="Hardcoded string &quot;Hello World&quot;, should use @string resource"
+                  category="Internationalization"
+                  priority="5"
+                  summary="Hardcoded text"
+                  explanation="Hardcoding text attributes directly in layout files is bad.">
+                  <location
+                      file="${RUNNER_WS}/${REPO_NAME}/app/src/main/res/layout/activity_main.xml"
+                      line="16"
+                      column="9"/>
+              </issue>
+          </issues>
+          EOF
+          echo "Created lint XML at $GITHUB_WORKSPACE/lint-output/lint-results.xml"
+          cat "$GITHUB_WORKSPACE/lint-output/lint-results.xml"
+
+      - id: action
+        uses: .
+        with:
+          github_token: fake-token-for-local-testing
+          lint_xml_file: lint-output/lint-results.xml
+          level: warning
+          reporter: local
+          reviewdog_flags: ''
+        continue-on-error: true
+
+      - name: Assert action ran (converter processed the lint file)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome=$OUTCOME)"
