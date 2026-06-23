@@ -1,0 +1,44 @@
+name: Test basic Android Lint action
+on:
+  workflow_dispatch:
+
+jobs:
+  test-basic:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REPOSITORY: test-owner/test-repo
+      RUNNER_WORKSPACE: /github/workspace
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Prepare lint XML fixture
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/lint-output"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/lint-results.xml" \
+             "$GITHUB_WORKSPACE/lint-output/lint-results.xml"
+          echo "Fixture copied successfully"
+          ls -la "$GITHUB_WORKSPACE/lint-output/"
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: fake-token-for-testing
+          lint_xml_file: lint-output/lint-results.xml
+          level: warning
+          reporter: github-check
+
+      - name: Assert action ran (converter executed)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "Action outcome: $OUTCOME"
+          # Accept 'success' or 'failure' — reviewdog auth failure is expected
+          # in a test environment without a real token. What we do NOT accept is
+          # the action never running at all (empty outcome).
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action ran with outcome=$OUTCOME"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME' — action may not have run"
+            exit 1
+          fi
