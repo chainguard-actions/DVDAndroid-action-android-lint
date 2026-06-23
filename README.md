@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v1 | [`v1`](https://github.com/chainguard-actions/DVDAndroid-action-android-lint/tree/v1) | [`1ad4080`](https://github.com/DVDAndroid/action-android-lint/commit/1ad408006f38043189c06b52b02b4de7dc910969) |
+| v1.3 | [`v1.3`](https://github.com/chainguard-actions/DVDAndroid-action-android-lint/tree/v1.3) | [`21c9fa6`](https://github.com/DVDAndroid/action-android-lint/commit/21c9fa6500c10caa12d8c581d9e280925f39510d) |
 
 ## Privacy
 
