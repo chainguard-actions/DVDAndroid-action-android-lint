@@ -1,0 +1,32 @@
+name: Test error handling when lint file is missing
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REPOSITORY: testowner/myrepo
+      RUNNER_WORKSPACE: /github/workspace
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: fake-token-for-testing
+          lint_xml_file: nonexistent-lint-results.xml
+          level: error
+          reporter: github-check
+
+      - name: Assert action failed due to missing lint file
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: expected action to fail when lint file is missing, got '$OUTCOME'"
+            exit 1
+          fi
+          echo "PASS: action correctly failed when lint file does not exist"
