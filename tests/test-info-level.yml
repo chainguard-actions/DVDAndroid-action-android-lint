@@ -1,0 +1,44 @@
+name: Test with info level reporting
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+    env:
+      RUNNER_WORKSPACE: /github/home
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy lint XML fixture into workspace
+        run: |
+          cp "$GITHUB_WORKSPACE/tests/fixtures/lint-no-issues.xml" "$GITHUB_WORKSPACE/lint-results.xml"
+          echo "Lint XML contents:"
+          cat "$GITHUB_WORKSPACE/lint-results.xml"
+
+      - name: Run action with info level
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          lint_xml_file: lint-results.xml
+          level: info
+          reporter: github-check
+
+      - name: Assert output_checkstyle.xml was created with no errors
+        run: |
+          echo "Checking output_checkstyle.xml was created..."
+          if [ ! -f "$GITHUB_WORKSPACE/output_checkstyle.xml" ]; then
+            echo "FAIL: output_checkstyle.xml was not created"
+            exit 1
+          fi
+          echo "output_checkstyle.xml contents:"
+          cat "$GITHUB_WORKSPACE/output_checkstyle.xml"
+          if grep -q '<error' "$GITHUB_WORKSPACE/output_checkstyle.xml"; then
+            echo "FAIL: expected no errors in output_checkstyle.xml for no-issues input"
+            exit 1
+          fi
+          echo "PASS: output_checkstyle.xml created with no errors, info level accepted"

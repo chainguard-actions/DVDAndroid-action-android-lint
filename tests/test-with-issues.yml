@@ -1,0 +1,64 @@
+name: Test with lint issues present
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+    env:
+      RUNNER_WORKSPACE: /github/home
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Prepare lint XML with issues using known workspace paths
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          FILE_PATH="/github/home/${REPO_NAME}/app/src/main/res/layout/activity_main.xml"
+          echo "Using file path: $FILE_PATH"
+          {
+            printf '<?xml version="1.0" encoding="UTF-8"?>\n'
+            printf '<issues format="5" by="lint 4.1.0">\n'
+            printf '    <issue\n'
+            printf '        id="HardcodedText"\n'
+            printf '        severity="Warning"\n'
+            printf '        message="Hardcoded string, should use @string resource"\n'
+            printf '        category="Internationalization"\n'
+            printf '        priority="5"\n'
+            printf '        summary="Hardcoded text"\n'
+            printf '        explanation="Hardcoding text attributes directly in layout files is bad.">\n'
+            printf '        <location\n'
+            printf '            file="%s"\n' "$FILE_PATH"
+            printf '            line="16"\n'
+            printf '            column="9"/>\n'
+            printf '    </issue>\n'
+            printf '</issues>\n'
+          } > "$GITHUB_WORKSPACE/lint-results.xml"
+          echo "Created lint XML:"
+          cat "$GITHUB_WORKSPACE/lint-results.xml"
+
+      - name: Run action with lint issues
+        id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          lint_xml_file: lint-results.xml
+          level: warning
+          reporter: github-check
+
+      - name: Assert output_checkstyle.xml was created with errors
+        run: |
+          echo "Checking output_checkstyle.xml was created..."
+          if [ ! -f "$GITHUB_WORKSPACE/output_checkstyle.xml" ]; then
+            echo "FAIL: output_checkstyle.xml was not created"
+            exit 1
+          fi
+          echo "output_checkstyle.xml contents:"
+          cat "$GITHUB_WORKSPACE/output_checkstyle.xml"
+          if ! grep -q '<error' "$GITHUB_WORKSPACE/output_checkstyle.xml"; then
+            echo "FAIL: expected errors in output_checkstyle.xml for issues input"
+            exit 1
+          fi
+          echo "PASS: output_checkstyle.xml created with errors as expected"
