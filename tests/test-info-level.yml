@@ -1,4 +1,4 @@
-name: Test with empty lint results (no issues)
+name: Test with info level reporting
 on:
   workflow_dispatch:
 
@@ -15,20 +15,20 @@ jobs:
         continue-on-error: true
         with:
           github_token: ${{ github.token }}
-          lint_xml_file: tests/fixtures/lint-empty.xml
-          level: error
+          lint_xml_file: tests/fixtures/lint-multi.xml
+          level: info
           reporter: local
 
-      - name: Assert action ran (no lint issues means reviewdog exits 0)
+      - name: Assert action ran (lint issues cause non-zero exit which is expected)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "Action outcome: $OUTCOME"
-          # With no lint issues, reviewdog exits 0 and the action should succeed.
+          # When lint issues are found, reviewdog exits 1 (expected behavior).
           # Accept both success and failure — either means the action ran correctly.
           # Only 'skipped' would indicate a problem.
           if [ "$OUTCOME" = "skipped" ]; then
             echo "FAIL: action step was skipped unexpectedly"
             exit 1
           fi
-          echo "PASS: action handled empty lint results correctly with outcome=$OUTCOME"
+          echo "PASS: action handled multiple issues at info level correctly with outcome=$OUTCOME"

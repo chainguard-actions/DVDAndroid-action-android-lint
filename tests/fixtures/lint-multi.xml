@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 4.1.0">
+    <issue
+        id="HardcodedText"
+        severity="Warning"
+        message="Hardcoded string, should use @string resource"
+        category="Internationalization"
+        priority="5"
+        summary="Hardcoded text"
+        explanation="Hardcoding text attributes directly in layout files is bad.">
+        <location
+            file="app/src/main/res/layout/activity_main.xml"
+            line="10"
+            column="9"/>
+    </issue>
+    <issue
+        id="UnusedResources"
+        severity="Warning"
+        message="The resource R.string.unused appears to not be used anywhere"
+        category="Performance"
+        priority="3"
+        summary="Unused resources"
+        explanation="Unused resources make applications larger and slow down builds.">
+        <location
+            file="app/src/main/res/values/strings.xml"
+            line="5"
+            column="5"/>
+    </issue>
+</issues>

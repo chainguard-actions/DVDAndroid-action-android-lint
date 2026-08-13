@@ -9,11 +9,11 @@
         priority="5"
         summary="Hardcoded text"
         explanation="Hardcoding text attributes directly in layout files is bad for several reasons..."
-        errorLine1="        android:text=&quot;Hello World&quot; />"
+        errorLine1="        android:text=&quot;Hello World&quot;"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/github/workspace/app/src/main/res/layout/activity_main.xml"
-            line="16"
+            line="10"
             column="9"/>
     </issue>
 

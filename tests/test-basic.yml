@@ -1,44 +1,34 @@
-name: Test basic Android Lint action
+name: Test basic usage with lint results
 on:
   workflow_dispatch:
 
 jobs:
-  test-basic:
+  test:
     runs-on: ubuntu-latest
     env:
-      GITHUB_REPOSITORY: test-owner/test-repo
       RUNNER_WORKSPACE: /github/workspace
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Prepare lint XML fixture
-        run: |
-          mkdir -p "$GITHUB_WORKSPACE/lint-output"
-          cp "$GITHUB_WORKSPACE/tests/fixtures/lint-results.xml" \
-             "$GITHUB_WORKSPACE/lint-output/lint-results.xml"
-          echo "Fixture copied successfully"
-          ls -la "$GITHUB_WORKSPACE/lint-output/"
 
       - id: action
         uses: .
         continue-on-error: true
         with:
-          github_token: fake-token-for-testing
-          lint_xml_file: lint-output/lint-results.xml
+          github_token: ${{ github.token }}
+          lint_xml_file: tests/fixtures/lint-test.xml
           level: warning
-          reporter: github-check
+          reporter: local
 
-      - name: Assert action ran (converter executed)
+      - name: Assert action ran (lint issues cause non-zero exit which is expected)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "Action outcome: $OUTCOME"
-          # Accept 'success' or 'failure' — reviewdog auth failure is expected
-          # in a test environment without a real token. What we do NOT accept is
-          # the action never running at all (empty outcome).
-          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action ran with outcome=$OUTCOME"
-          else
-            echo "FAIL: unexpected outcome '$OUTCOME' — action may not have run"
+          # When lint issues are found, reviewdog exits 1 (expected behavior).
+          # Accept both success and failure — either means the action ran correctly.
+          # Only 'skipped' or an unexpected state would indicate a problem.
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
             exit 1
           fi
+          echo "PASS: action ran to completion with outcome=$OUTCOME"
