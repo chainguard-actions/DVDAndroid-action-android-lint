@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 4.1.0">
+    <issue
+        id="IconDipSize"
+        severity="Warning"
+        message="Suspicious file name; should not contain dots"
+        category="Usability:Icons"
+        priority="5"
+        summary="Icon size does not match dip size"
+        explanation="There are standard sizes for icons in Android.">
+        <location
+            file="app/src/main/res/layout/activity_main.xml"
+            line="1"
+            column="1"/>
+    </issue>
+</issues>

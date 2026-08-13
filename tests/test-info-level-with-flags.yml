@@ -1,4 +1,4 @@
-name: Test basic usage - no lint issues
+name: Test info level with reviewdog flags
 on:
   workflow_dispatch:
 
@@ -20,21 +20,21 @@ jobs:
 
       - name: Copy lint fixture into workspace
         run: |
-          cp "$GITHUB_WORKSPACE/tests/fixtures/lint-no-issues.xml" "$GITHUB_WORKSPACE/lint-results.xml"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/lint-with-info.xml" "$GITHUB_WORKSPACE/lint-info.xml"
           echo "Lint XML contents:"
-          cat "$GITHUB_WORKSPACE/lint-results.xml"
+          cat "$GITHUB_WORKSPACE/lint-info.xml"
 
       - id: action
         uses: .
         continue-on-error: true
         with:
           github_token: ${{ github.token }}
-          lint_xml_file: lint-results.xml
-          level: warning
+          lint_xml_file: lint-info.xml
+          level: info
           reporter: github-check
-          reviewdog_flags: ''
+          reviewdog_flags: '-tee'
 
-      - name: Assert action completed successfully
+      - name: Assert action ran
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
@@ -43,4 +43,4 @@ jobs:
             echo "FAIL: action was skipped unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran (outcome=$OUTCOME)"
+          echo "PASS: action ran with info level and -tee flag (outcome=$OUTCOME)"

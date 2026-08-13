@@ -1,4 +1,4 @@
-name: Test basic usage - no lint issues
+name: Test with lint issues
 on:
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
 
       - name: Copy lint fixture into workspace
         run: |
-          cp "$GITHUB_WORKSPACE/tests/fixtures/lint-no-issues.xml" "$GITHUB_WORKSPACE/lint-results.xml"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/lint-with-warning.xml" "$GITHUB_WORKSPACE/lint-results.xml"
           echo "Lint XML contents:"
           cat "$GITHUB_WORKSPACE/lint-results.xml"
 
@@ -34,7 +34,7 @@ jobs:
           reporter: github-check
           reviewdog_flags: ''
 
-      - name: Assert action completed successfully
+      - name: Assert action ran
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
@@ -43,4 +43,4 @@ jobs:
             echo "FAIL: action was skipped unexpectedly"
             exit 1
           fi
-          echo "PASS: action ran (outcome=$OUTCOME)"
+          echo "PASS: action ran and processed lint issues (outcome=$OUTCOME)"
